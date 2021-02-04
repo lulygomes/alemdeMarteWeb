@@ -17,11 +17,14 @@ interface PhotoData {
   img_src: string;
 }
 
+interface ResponseLikeData {
+  photo_id: number;
+  likes: number;
+}
+
 const LandPage: React.FC = () => {
   const { user } = useAuth();
   const [nasaPhotos, setNasaPhotos] = useState<PhotoData[]>([]);
-
-  console.log(nasaPhotos);
 
   useEffect(() => {
     api
@@ -30,14 +33,28 @@ const LandPage: React.FC = () => {
       .catch(err => console.log(err));
   }, []);
 
-  const handleLike = useCallback(async photoId => {
-    try {
-      const response = await api.post(`/like/${photoId}`);
-      console.log(response.data);
-    } catch (err) {
-      console.log(err);
-    }
-  }, []);
+  const handleLike = useCallback(
+    async photoId => {
+      try {
+        const { data } = await api.post<ResponseLikeData>(
+          `/like/photo/${photoId}`,
+        );
+
+        const updatePhotoLike = nasaPhotos.map(photo => {
+          if (photo.id === Number(data.photo_id)) {
+            return { ...photo, likes: data.likes, like: !photo.like };
+          }
+
+          return photo;
+        });
+
+        setNasaPhotos(updatePhotoLike);
+      } catch (err) {
+        console.log(err);
+      }
+    },
+    [nasaPhotos],
+  );
 
   return (
     <Container>
@@ -49,16 +66,13 @@ const LandPage: React.FC = () => {
         {nasaPhotos.map(photo => {
           return (
             <Card key={photo.id}>
-              <img
-                src={photo.img_src}
-                alt={`Foto tirada por ${photo.rover.name}`}
-              />
+              <img src={photo.img_src} alt="Foto tirada pela NASA" />
 
               <div id="like">
                 <button type="button" onClick={() => handleLike(photo.id)}>
-                  Like
-                </button>{' '}
-                34 Likes
+                  {photo.like ? 'Unlike' : 'Like'}
+                </button>
+                {photo.likes} Likes
               </div>
 
               <p>Foto tirada pelo hover {photo.rover.name}.</p>

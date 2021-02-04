@@ -28,4 +28,11 @@ export const Card = styled.div`
     max-width: 50vw;
     max-height: 50vw;
   }
+
+  div#like {
+    display: flex;
+    justify-content: space-between;
+
+    margin: 8px 0;
+  }
 `;
