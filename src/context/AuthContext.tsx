@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import React, { createContext, useCallback, useContext, useState } from 'react';
-import { localApi } from '../services/api';
+import api from '../services/api';
 
 interface UserData {
   id: string;
@@ -30,6 +30,7 @@ const AuthProvider: React.FC = ({ children }) => {
     const user = localStorage.getItem('@AlemDeMarte:user');
 
     if (token && user) {
+      api.defaults.headers.authorization = `Bearer ${token}`;
       return { token, user: JSON.parse(user) };
     }
 
@@ -37,12 +38,14 @@ const AuthProvider: React.FC = ({ children }) => {
   });
 
   const signIn = useCallback(async ({ name }) => {
-    const response = await localApi.post(`user/${name}`);
+    const response = await api.post(`user/${name}`);
 
     const { user, token } = response.data;
 
     localStorage.setItem('@AlemDeMarte:token', token);
     localStorage.setItem('@AlemDeMarte:user', JSON.stringify(user));
+
+    api.defaults.headers.authorization = `Bearer ${token}`;
 
     setData({ token, user });
   }, []);
